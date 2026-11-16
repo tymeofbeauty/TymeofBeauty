@@ -1,0 +1,6 @@
+{
+  "name": "Tyme of Beauty",
+  "description": "Tyme of Beauty - Beauty & Healthy Everywhere. Bilingual wellness, career, and partner platform with Gemini AI concierge and Google Workspace integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

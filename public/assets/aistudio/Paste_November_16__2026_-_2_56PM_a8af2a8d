@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tyme of Beauty - Landing Experience</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Bodoni Moda (Headings) & Manrope (Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C59B27',
+                        secondary: '#D4AF37',
+                        tertiary: '#EEDC9A',
+                        neutral: '#111827',
+                        page: '#FDFDFD'
+                    },
+                    fontFamily: {
+                        heading: ['"Bodoni Moda"', 'serif'],
+                        body: ['"Manrope"', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'gradient-1': 'radial-gradient(circle at bottom left, rgba(176,64,18,0.85) 0%, rgba(46,13,4,0.7) 100%)',
+                        'gradient-2': 'linear-gradient(135deg, rgba(236,96,28,0.85) 0%, rgba(250,150,56,0.7) 100%)',
+                        'gradient-3': 'radial-gradient(circle at top right, rgba(132,52,22,0.85) 0%, rgba(24,9,5,0.7) 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Manrope', sans-serif; background-color: #FDFDFD; color: #111827; }
+        
+        /* Typography System */
+        .font-heading, h1, h2, h3 { font-family: 'Bodoni Moda', serif; }
+
+        /* Splash Screen */
+        #splash { 
+            position: fixed; inset: 0; background: #111827; color: #C59B27; 
+            z-index: 9999; display: flex; align-items: flex-end; padding: 3rem; 
+            transition: opacity 700ms ease; 
+        }
+        #splash-counter { font-family: 'Bodoni Moda', serif; font-size: clamp(4rem, 15vw, 15rem); line-height: 0.8; }
+
+        /* Masked Card Mosaic (Fixed Background Image simulation) */
+        .masked-bg-hero {
+            background-image: url('https://ik.imagekit.io/tymeofbeauty/Gemini_Generated_Image_en3tf2en3tf2en3t.jpg');
+            background-attachment: fixed;
+            background-position: center;
+            background-size: cover;
+        }
+        
+        .masked-bg-career {
+            background-image: url('https://ik.imagekit.io/tymeofbeauty/Gemini_Generated_Image_avr76kavr76kavr7.jpg?updatedAt=1794730366774');
+            background-attachment: fixed;
+            background-position: center;
+            background-size: cover;
+        }
+
+        /* Animations & Hover states */
+        .menu-item { opacity: 0; transform: translateY(30px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .menu-open .menu-item { opacity: 1; transform: translateY(0); }
+        
+        .card-hover { transition: transform 0.4s ease, box-shadow 0.4s ease; }
+        .card-hover:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 25px 50px -12px rgba(197, 155, 39, 0.25); 
+        }
+        .card-hover:hover .paper-layer {
+            transform: translateY(-5px) rotate(2deg) scale(1.02);
+        }
+
+        .paper-layer { transition: transform 0.4s ease; }
+
+        /* Text Gradient Enhancement */
+        .text-gradient {
+            background: linear-gradient(to right, #C59B27, #EEDC9A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <!-- 1. Splash Screen -->
+    <div id="splash">
+        <div id="splash-counter">0</div>
+    </div>
+
+    <!-- 2. Fixed Navbar & Slide-Out Menu -->
+    <nav class="fixed top-0 w-full z-50 bg-page/80 backdrop-blur-xl border-b border-tertiary/40 px-6 py-4 flex justify-between items-center transition-all duration-300">
+        <div class="font-heading text-2xl font-bold text-neutral">Tyme of Beauty</div>
+        <div class="hidden md:flex gap-6 items-center">
+            <!-- Language Switcher -->
+            <div class="flex gap-2 text-sm font-semibold tracking-wider">
+                <button class="text-primary hover:text-secondary transition">EN</button>
+                <span class="text-tertiary">|</span>
+                <button class="text-neutral/50 hover:text-primary transition">TH</button>
+            </div>
+            <!-- Booking & Concierge -->
+            <button class="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-secondary transition shadow-md shadow-primary/20">Service Booking</button>
+            <button class="px-6 py-2.5 border border-primary text-primary rounded-lg text-sm font-medium hover:bg-tertiary/20 transition">AI Concierge</button>
+        </div>
+        
+        <!-- Hamburger Menu Button -->
+        <button id="menu-btn" class="flex flex-col gap-1.5 z-[60] relative w-8 h-8 justify-center items-center cursor-pointer">
+            <span class="w-7 h-0.5 bg-neutral block transition-transform duration-300"></span>
+            <span class="w-7 h-0.5 bg-neutral block transition-opacity duration-300"></span>
+            <span class="w-7 h-0.5 bg-neutral block transition-transform duration-300"></span>
+        </button>
+    </nav>
+
+    <!-- Slide-Out Fullscreen Menu -->
+    <div id="mobile-menu" class="fixed inset-0 bg-neutral text-page z-40 flex flex-col justify-center items-center gap-8 pointer-events-none opacity-0 transition-opacity duration-500 backdrop-blur-2xl">
+        <a href="#" class="menu-item font-heading text-5xl hover:text-primary transition" style="transition-delay: 100ms;">Home</a>
+        <a href="#" class="menu-item font-heading text-5xl hover:text-primary transition" style="transition-delay: 200ms;">Career</a>
+        <a href="#" class="menu-item font-heading text-5xl hover:text-primary transition" style="transition-delay: 300ms;">Business Partner</a>
+        <a href="#" class="menu-item font-heading text-5xl hover:text-primary transition" style="transition-delay: 400ms;">Influencer</a>
+        <a href="#" class="menu-item font-heading text-5xl hover:text-primary transition" style="transition-delay: 500ms;">Contact</a>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <main id="main-content" class="pt-24 opacity-0 transition-opacity duration-1000 h-screen overflow-y-auto">
+        
+        <!-- Section 1: Hero (Masked Card Mosaic) -->
+        <section class="min-h-screen px-6 py-12 flex flex-col items-center justify-center relative">
+            <h1 class="font-heading text-5xl md:text-7xl font-semibold mb-6 text-center text-neutral">Successful Pathway <br> <span class="text-gradient">on Your Own</span></h1>
+            <p class="text-center max-w-2xl mx-auto mb-16 text-neutral/70 font-light text-lg">We ensure that our capability would generate the beauty and healthy communities and its ecosystem. You can join us as one of them.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-7xl">
+                <!-- Feature 1 -->
+                <div class="card-hover relative h-[450px]">
+                    <div class="paper-layer absolute inset-0 bg-white rounded-3xl border border-tertiary translate-y-3 translate-x-2 -z-10 shadow-sm"></div>
+                    <div class="h-full rounded-3xl overflow-hidden relative masked-bg-hero shadow-xl flex items-end p-8 border border-primary/20 before:absolute before:inset-0 before:bg-gradient-1">
+                        <div class="relative z-10 w-full text-white">
+                            <div class="flex justify-between items-start mb-6">
+                                <h3 class="font-heading text-3xl font-bold">About Career</h3>
+                                <span class="text-[10px] font-bold uppercase tracking-widest border border-white/40 px-3 py-1.5 rounded-md">Career</span>
+                            </div>
+                            <hr class="border-white/20 my-4">
+                            <p class="text-sm font-light leading-relaxed">"Welcome to our team"<br>Entire Thailand coverage required, We’re ready to change your life better.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="card-hover relative h-[450px] mt-0 md:-mt-10">
+                    <div class="paper-layer absolute inset-0 bg-white rounded-3xl border border-tertiary translate-y-4 -translate-x-2 -z-10 shadow-sm"></div>
+                    <div class="h-full rounded-3xl overflow-hidden relative masked-bg-hero shadow-xl flex items-end p-8 border border-secondary/20 before:absolute before:inset-0 before:bg-gradient-2">
+                        <div class="relative z-10 w-full text-white">
+                            <div class="flex justify-between items-start mb-6">
+                                <h3 class="font-heading text-3xl font-bold">Business Partner</h3>
+                                <span class="text-[10px] font-bold uppercase tracking-widest border border-white/40 px-3 py-1.5 rounded-md">Partner</span>
+                            </div>
+                            <hr class="border-white/20 my-4">
+                            <p class="text-sm font-light leading-relaxed">"Our community getting stronger everyday"<br>If you are an existing service provider, you’re very welcomed to join us.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="card-hover relative h-[450px]">
+                    <div class="paper-layer absolute inset-0 bg-white rounded-3xl border border-tertiary translate-y-3 translate-x-2 -z-10 shadow-sm"></div>
+                    <div class="h-full rounded-3xl overflow-hidden relative masked-bg-hero shadow-xl flex items-end p-8 border border-primary/20 before:absolute before:inset-0 before:bg-gradient-3">
+                        <div class="relative z-10 w-full text-white">
+                            <div class="flex justify-between items-start mb-6">
+                                <h3 class="font-heading text-3xl font-bold">About Influencer</h3>
+                                <span class="text-[10px] font-bold uppercase tracking-widest border border-white/40 px-3 py-1.5 rounded-md">Influencer</span>
+                            </div>
+                            <hr class="border-white/20 my-4">
+                            <p class="text-sm font-light leading-relaxed">"Extra income made by advertisement"<br>Unlimited earnings by simply working at your place.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="mt-16 px-8 py-3.5 bg-page border border-tertiary text-neutral rounded-full text-sm font-semibold hover:border-primary hover:text-primary transition shadow-sm card-hover">View more information</button>
+        </section>
+
+        <!-- Section 2: Career (Shared Masked Background + 4-Card Grid) -->
+        <section class="py-24 px-6 bg-page border-t border-tertiary/20 relative">
+            <div class="max-w-7xl mx-auto relative z-10">
+                <h2 class="font-heading text-4xl md:text-5xl font-bold mb-16 text-center text-neutral">Grow with Tyme of Beauty</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Hero Card -->
+                    <div class="rounded-[2.5rem] p-10 masked-bg-career border border-primary/30 relative overflow-hidden flex flex-col justify-between min-h-[400px] card-hover before:absolute before:inset-0 before:bg-neutral/60">
+                        <div class="relative z-10 text-page flex flex-col h-full justify-between">
+                            <div>
+                                <span class="text-xs uppercase tracking-widest text-tertiary font-bold mb-3 block">Opportunities</span>
+                                <h3 class="font-heading text-4xl mb-4 leading-tight">TYME Career <br>Development</h3>
+                            </div>
+                            <p class="text-page/80 font-light border-t border-page/20 pt-6 mt-6">Transform your professional journey and unlock your potential with our ecosystem.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Grid (Sub-cards) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <!-- Sub Card 1 -->
+                        <div class="rounded-3xl p-8 bg-tertiary/10 border border-tertiary/40 flex flex-col justify-center text-center card-hover">
+                            <h4 class="font-heading text-2xl mb-2 text-neutral">Career Makeover</h4>
+                            <p class="text-sm text-neutral/60">Tailored structure for growth</p>
+                        </div>
+                        <!-- Sub Card 2 -->
+                        <div class="rounded-3xl p-8 bg-primary text-page border border-primary flex flex-col justify-center text-center card-hover shadow-lg shadow-primary/20">
+                            <h4 class="font-heading text-2xl mb-2">Contact Us</h4>
+                            <p class="text-sm text-page/80">Connect with our HR team</p>
+                        </div>
+                        <!-- 4-Service sub-card panel -->
+                        <div class="rounded-3xl p-6 bg-neutral text-page col-span-1 sm:col-span-2 card-hover">
+                            <h4 class="font-heading text-xl mb-4 border-b border-page/10 pb-4">Our 4 Core Services</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-sm font-light text-center hover:bg-white/10 transition cursor-default">Skill Sync</div>
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-sm font-light text-center hover:bg-white/10 transition cursor-default">Pro Profile</div>
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-sm font-light text-center hover:bg-white/10 transition cursor-default">Network Plus</div>
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-sm font-light text-center hover:bg-white/10 transition cursor-default">Growth Map</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Business Partners & Conversion Flow Form -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 border-t border-tertiary/20">
+            <!-- Left Column -->
+            <div class="bg-gray-50 p-12 lg:p-24 flex flex-col justify-center relative overflow-hidden">
+                <!-- Overlay Graphic Element -->
+                <div class="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="relative z-10 max-w-lg">
+                    <span class="text-sm uppercase tracking-widest text-primary font-bold mb-4 block">Ecosystem Extension</span>
+                    <h2 class="font-heading text-4xl md:text-5xl font-bold mb-6 text-neutral">Become a Business Partner</h2>
+                    <p class="text-neutral/60 font-light mb-10 text-lg leading-relaxed">Expand your service capabilities and unlock new revenue streams. Manage bookings and interact with clients seamlessly within our curated platform.</p>
+                    
+                    <button class="bg-neutral text-page px-8 py-4 rounded-xl font-semibold hover:bg-primary transition shadow-xl shadow-neutral/10 w-fit">Book Online Now</button>
+
+                    <!-- Interactive Earning Overlay Card -->
+                    <div class="mt-16 bg-white p-8 rounded-2xl shadow-xl border border-tertiary/30 card-hover relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-bl-full pointer-events-none"></div>
+                        <h4 class="font-bold text-neutral mb-2 text-sm uppercase tracking-widest">Average Estimated Earnings</h4>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-4xl font-heading text-primary font-bold">฿45,000</span>
+                            <span class="text-sm font-body text-neutral/40">/ month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="bg-gray-200 p-12 lg:p-24 flex flex-col justify-center">
+                <div class="bg-white rounded-3xl p-10 shadow-2xl border border-white relative">
+                    <h3 class="font-heading text-3xl font-bold mb-2 text-neutral">Submit Inquiry</h3>
+                    <p class="text-neutral/50 font-light mb-8 text-sm">Secure endpoint connection directly to Google Sheets via API.</p>
+
+                    <!-- Contact Form with Real-time Validation -->
+                    <form id="contact-form" class="flex flex-col gap-6" novalidate>
+                        <div>
+                            <label class="block text-sm font-bold text-neutral mb-2">Full Name</label>
+                            <input type="text" id="name" required class="w-full bg-gray-50 px-5 py-3.5 rounded-xl border border-gray-200 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-light" placeholder="e.g. Somchai Jai-dee">
+                            <span class="text-xs text-red-500 hidden mt-2 font-medium transition-opacity" id="err-name">Please enter your full name (minimum 2 characters).</span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-neutral mb-2">Email Address</label>
+                            <input type="email" id="email" required class="w-full bg-gray-50 px-5 py-3.5 rounded-xl border border-gray-200 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-light" placeholder="contact@example.com">
+                            <span class="text-xs text-red-500 hidden mt-2 font-medium transition-opacity" id="err-email">Please enter a valid email format.</span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-neutral mb-2">Service Interest</label>
+                            <select class="w-full bg-gray-50 px-5 py-3.5 rounded-xl border border-gray-200 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-light appearance-none text-neutral/80">
+                                <option>Join as Career</option>
+                                <option>Join as Business Partner</option>
+                                <option>Join as Influencer</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Submit Button with Loading State -->
+                        <button type="submit" id="submit-btn" class="mt-4 bg-primary text-white px-8 py-4 rounded-xl font-bold hover:bg-secondary transition-colors flex justify-center items-center gap-3 shadow-lg shadow-primary/20">
+                            <span id="btn-text">Send Message</span>
+                            <svg id="spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+
+                        <!-- Success Confirmation State -->
+                        <div id="success-msg" class="hidden mt-4 p-5 bg-tertiary/20 text-neutral rounded-xl border border-primary/30 text-sm flex flex-col gap-1 text-center">
+                            <span class="font-bold text-primary text-base">Inquiry Submitted Successfully!</span>
+                            <span>Your Reference ID: <strong id="ref-id" class="font-heading tracking-widest text-lg ml-1"></strong></span>
+                            <span class="text-neutral/60 text-xs mt-2">Data has been routed to /api/contact/sheets</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Splash Screen Configuration & Logic
+            const urlParams = new URLSearchParams(window.location.search);
+            const splash = document.getElementById('splash');
+            const counter = document.getElementById('splash-counter');
+            const main = document.getElementById('main-content');
+            const menuBtn = document.getElementById('menu-btn');
+            const nav = document.querySelector('nav');
+
+            const startApp = () => {
+                document.body.classList.remove('overflow-hidden');
+                main.classList.remove('opacity-0');
+            };
+
+            // ?autostart=1 support for skipping splash screen
+            if (urlParams.get('autostart') === '1') {
+                splash.style.display = 'none';
+                startApp();
+            } else {
+                // 2000ms counter duration
+                let startTimestamp = null;
+                const duration = 2000;
+                
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = timestamp - startTimestamp;
+                    const val = Math.min(Math.floor((progress / duration) * 100), 100);
+                    
+                    counter.innerText = val;
+                    
+                    if (progress < duration) {
+                        window.requestAnimationFrame(step);
+                    } else {
+                        // Hold 200ms at 100
+                        setTimeout(() => {
+                            // Fade out over 700ms
+                            splash.style.opacity = '0';
+                            setTimeout(() => {
+                                splash.style.display = 'none';
+                                startApp();
+                            }, 700);
+                        }, 200);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            // 2. Navbar & Staggered Slide-Out Menu Logic
+            const mobileMenu = document.getElementById('mobile-menu');
+            const spans = menuBtn.querySelectorAll('span');
+            let isMenuOpen = false;
+
+            menuBtn.addEventListener('click', () => {
+                isMenuOpen = !isMenuOpen;
+                if(isMenuOpen) {
+                    // Open Menu
+                    mobileMenu.classList.remove('pointer-events-none', 'opacity-0');
+                    mobileMenu.classList.add('menu-open');
+                    nav.classList.add('bg-transparent', 'border-transparent');
+                    nav.classList.remove('bg-page/80', 'backdrop-blur-xl', 'border-tertiary/40');
+                    // Animate Hamburger to X
+                    spans[0].style.transform = 'translateY(8px) rotate(45deg)';
+                    spans[0].classList.replace('bg-neutral', 'bg-page');
+                    spans[1].style.opacity = '0';
+                    spans[2].style.transform = 'translateY(-8px) rotate(-45deg)';
+                    spans[2].classList.replace('bg-neutral', 'bg-page');
+                } else {
+                    // Close Menu
+                    mobileMenu.classList.add('pointer-events-none', 'opacity-0');
+                    mobileMenu.classList.remove('menu-open');
+                    nav.classList.add('bg-page/80', 'backdrop-blur-xl', 'border-tertiary/40');
+                    nav.classList.remove('bg-transparent', 'border-transparent');
+                    // Revert X to Hamburger
+                    spans[0].style.transform = 'none';
+                    spans[0].classList.replace('bg-page', 'bg-neutral');
+                    spans[1].style.opacity = '1';
+                    spans[2].style.transform = 'none';
+                    spans[2].classList.replace('bg-page', 'bg-neutral');
+                }
+            });
+
+            // 3. Conversion Flow Contact Form (Inline validation & Mock Sheet API)
+            const form = document.getElementById('contact-form');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            
+            const errName = document.getElementById('err-name');
+            const errEmail = document.getElementById('err-email');
+            
+            // Real-time Email Regex validation
+            const validateEmail = (email) => {
+                return String(email).toLowerCase().match(
+                    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                );
+            };
+
+            // Inline Check Listeners
+            nameInput.addEventListener('input', () => {
+                errName.style.display = nameInput.value.trim().length >= 2 ? 'none' : 'block';
+            });
+            
+            emailInput.addEventListener('input', () => {
+                errEmail.style.display = validateEmail(emailInput.value) ? 'none' : 'block';
+            });
+
+            // Form Submit Intercept (Endpoint Mock)
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const isNameValid = nameInput.value.trim().length >= 2;
+                const isEmailValid = validateEmail(emailInput.value);
+
+                if(!isNameValid) errName.style.display = 'block';
+                if(!isEmailValid) errEmail.style.display = 'block';
+
+                if(!isNameValid || !isEmailValid) return;
+
+                // Elements setup for loading state
+                const submitBtn = document.getElementById('submit-btn');
+                const btnText = document.getElementById('btn-text');
+                const spinner = document.getElementById('spinner');
+                const successMsg = document.getElementById('success-msg');
+                const refIdDisplay = document.getElementById('ref-id');
+
+                // Enter Loading State
+                submitBtn.disabled = true;
+                submitBtn.classList.replace('hover:bg-secondary', 'opacity-70');
+                btnText.innerText = 'Connecting...';
+                spinner.classList.remove('hidden');
+
+                // Simulate fetch to /api/contact/sheets endpoint (1500ms delay)
+                setTimeout(() => {
+                    // Generate Reference ID
+                    const generatedRefId = 'TYME-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+                    
+                    // Show Completion Feedback
+                    submitBtn.classList.add('hidden');
+                    successMsg.classList.remove('hidden');
+                    refIdDisplay.innerText = generatedRefId;
+                    
+                    // Optionally reset form
+                    // form.reset(); 
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

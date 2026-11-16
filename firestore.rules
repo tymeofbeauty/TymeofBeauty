@@ -1,0 +1,243 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened reusable primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(val) {
+      return val is string && val.size() >= 3 && val.size() <= 200;
+    }
+
+    // Entity Validation Blueprints (no existing() or diff() inside helpers)
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'preferredLanguage', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'preferredLanguage', 'spreadsheetId', 'spreadsheetUrl', 'createdAt', 'updatedAt'])
+        && data.uid is string && data.uid == request.auth.uid && data.uid == userId
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && isValidEmail(data.email)
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && data.preferredLanguage in ['en', 'th']
+        && (!('spreadsheetId' in data) || (data.spreadsheetId is string && data.spreadsheetId.size() <= 150))
+        && (!('spreadsheetUrl' in data) || (data.spreadsheetUrl is string && data.spreadsheetUrl.size() <= 500))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidChatSession(data, sessionId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'language', 'messageCount', 'lastMessagePreview', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'title', 'language', 'messageCount', 'lastMessagePreview', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id == sessionId
+        && data.userId is string && data.userId == request.auth.uid
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.language in ['en', 'th']
+        && data.messageCount is int && data.messageCount >= 0 && data.messageCount <= 10000
+        && data.lastMessagePreview is string && data.lastMessagePreview.size() <= 200
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidChatMessage(data, sessionId, messageId) {
+      return data.keys().hasAll(['id', 'sessionId', 'userId', 'role', 'content', 'sources', 'createdAt'])
+        && data.keys().hasOnly(['id', 'sessionId', 'userId', 'role', 'content', 'sources', 'createdAt'])
+        && data.id is string && data.id == messageId
+        && data.sessionId is string && data.sessionId == sessionId
+        && data.userId is string && data.userId == request.auth.uid
+        && data.role in ['user', 'model']
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 32000
+        && data.sources is list && data.sources.size() <= 8
+        && (data.sources.size() == 0 || (data.sources[0] is string && data.sources[0].size() <= 200))
+        && data.createdAt is timestamp;
+    }
+
+    function isValidUserMemory(data, memoryId) {
+      return data.keys().hasAll(['id', 'userId', 'fact', 'category', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'fact', 'category', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id == memoryId
+        && data.userId is string && data.userId == request.auth.uid
+        && data.fact is string && data.fact.size() >= 1 && data.fact.size() <= 500
+        && data.category in ['preference', 'goal', 'beauty', 'career', 'partner']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDocChunk(data, chunkId) {
+      return data.keys().hasAll(['id', 'userId', 'documentId', 'documentTitle', 'chunkIndex', 'content', 'embedding', 'createdAt'])
+        && data.keys().hasOnly(['id', 'userId', 'documentId', 'documentTitle', 'chunkIndex', 'content', 'embedding', 'createdAt'])
+        && data.id is string && data.id == chunkId
+        && data.userId is string && data.userId == request.auth.uid
+        && data.documentId is string && data.documentId.size() >= 1 && data.documentId.size() <= 150
+        && data.documentTitle is string && data.documentTitle.size() >= 1 && data.documentTitle.size() <= 200
+        && data.chunkIndex is int && data.chunkIndex >= 0 && data.chunkIndex <= 5000
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 4000
+        && data.embedding is list && data.embedding.size() >= 1 && data.embedding.size() <= 3072
+        && data.embedding[0] is number
+        && data.createdAt is timestamp;
+    }
+
+    function isValidContactSubmission(data, submissionId) {
+      return data.keys().hasAll(['id', 'userId', 'referenceId', 'fullName', 'email', 'phone', 'interest', 'language', 'createdAt'])
+        && data.keys().hasOnly(['id', 'userId', 'referenceId', 'fullName', 'email', 'phone', 'interest', 'preferredDate', 'notes', 'language', 'spreadsheetId', 'spreadsheetUrl', 'createdAt'])
+        && data.id is string && data.id == submissionId
+        && data.userId is string && data.userId == request.auth.uid
+        && data.referenceId is string && data.referenceId.size() >= 1 && data.referenceId.size() <= 64
+        && data.fullName is string && data.fullName.size() >= 1 && data.fullName.size() <= 120
+        && isValidEmail(data.email)
+        && data.phone is string && data.phone.size() >= 6 && data.phone.size() <= 30
+        && data.interest is string && data.interest.size() >= 1 && data.interest.size() <= 80
+        && (!('preferredDate' in data) || (data.preferredDate is string && data.preferredDate.size() <= 40))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000))
+        && data.language in ['en', 'th']
+        && (!('spreadsheetId' in data) || (data.spreadsheetId is string && data.spreadsheetId.size() <= 150))
+        && (!('spreadsheetUrl' in data) || (data.spreadsheetUrl is string && data.spreadsheetUrl.size() <= 500))
+        && data.createdAt is timestamp;
+    }
+
+    // User profile (PII strictly owner-only)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName', 'email', 'photoURL', 'preferredLanguage', 'spreadsheetId', 'spreadsheetUrl', 'updatedAt'
+        ]);
+      allow delete: if false;
+
+      // Saved chat sessions
+      match /sessions/{sessionId} {
+        allow get: if isValidId(userId) && isValidId(sessionId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(sessionId)
+          && isOwner(userId)
+          && isValidChatSession(incoming(), sessionId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(sessionId)
+          && isOwner(userId)
+          && isValidChatSession(incoming(), sessionId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'language', 'messageCount', 'lastMessagePreview', 'updatedAt'
+          ]);
+        allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(sessionId) && isOwner(userId);
+
+        // Messages inside a session
+        match /messages/{messageId} {
+          allow get: if isValidId(userId) && isValidId(sessionId) && isValidId(messageId) && isOwner(userId);
+          allow list: if isOwner(userId) && resource.data.userId == request.auth.uid && resource.data.sessionId == sessionId;
+          allow create: if isVerifiedUser()
+            && isValidId(userId)
+            && isValidId(sessionId)
+            && isValidId(messageId)
+            && isOwner(userId)
+            && isValidChatMessage(incoming(), sessionId, messageId)
+            && incoming().createdAt == request.time
+            && exists(/databases/$(database)/documents/users/$(userId)/sessions/$(sessionId));
+          allow update: if false;
+          allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(sessionId) && isValidId(messageId) && isOwner(userId);
+        }
+      }
+
+      // Persistent user memories
+      match /memories/{memoryId} {
+        allow get: if isValidId(userId) && isValidId(memoryId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(memoryId)
+          && isOwner(userId)
+          && isValidUserMemory(incoming(), memoryId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(memoryId)
+          && isOwner(userId)
+          && isValidUserMemory(incoming(), memoryId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['fact', 'category', 'updatedAt']);
+        allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(memoryId) && isOwner(userId);
+      }
+
+      // Private vector embeddings from Google Docs
+      match /docChunks/{chunkId} {
+        allow get: if isValidId(userId) && isValidId(chunkId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(chunkId)
+          && isOwner(userId)
+          && isValidDocChunk(incoming(), chunkId)
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if false;
+        allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(chunkId) && isOwner(userId);
+      }
+
+      // Contact form submissions
+      match /submissions/{submissionId} {
+        allow get: if isValidId(userId) && isValidId(submissionId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(submissionId)
+          && isOwner(userId)
+          && isValidContactSubmission(incoming(), submissionId)
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+  }
+}
