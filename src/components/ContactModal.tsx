@@ -16,6 +16,7 @@ interface ContactModalProps {
   onClose: () => void;
   lang: Language;
   initialInterest?: string;
+  initialNotes?: string;
   user: User | null;
   accessToken: string | null;
   linkedSpreadsheetId?: string;
@@ -49,6 +50,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   onClose,
   lang,
   initialInterest = 'Free Consultation',
+  initialNotes = '',
   user,
   accessToken,
   linkedSpreadsheetId,
@@ -62,7 +64,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     phone: '',
     interest: initialInterest,
     preferredDate: '',
-    notes: '',
+    notes: initialNotes,
     consent: false,
   });
 
@@ -76,12 +78,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({
       setForm((prev) => ({
         ...prev,
         interest: initialInterest || prev.interest || 'Free Consultation',
+        notes: initialNotes || prev.notes || '',
         fullName: prev.fullName || user?.displayName || '',
         email: prev.email || user?.email || '',
       }));
       setServerError(null);
     }
-  }, [open, initialInterest, user]);
+  }, [open, initialInterest, initialNotes, user]);
 
   useEffect(() => {
     if (!open) return;

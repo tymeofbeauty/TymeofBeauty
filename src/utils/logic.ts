@@ -374,3 +374,55 @@ export function sanitizeLinkUrl(url: string): string | null {
   }
   return null;
 }
+
+export type AppRoute = '/' | '/beauty-services';
+
+export interface RouteSeoMetadata {
+  route: AppRoute;
+  title: string;
+  description: string;
+  ogTitle: string;
+  ogDescription: string;
+}
+
+const HOME_SEO_METADATA: RouteSeoMetadata = {
+  route: '/',
+  title: 'Tyme of Beauty - Beauty & Healthy Everywhere',
+  description:
+    'Tyme of Beauty - Beauty & Healthy Everywhere. Trusted beauty & wellness services, certified careers, and business partner opportunities across Thailand.',
+  ogTitle: 'Tyme of Beauty - Beauty & Healthy Everywhere',
+  ogDescription:
+    'Trusted beauty & wellness services, certified careers, and business partner opportunities across Thailand.',
+};
+
+const BEAUTY_SERVICES_SEO_METADATA: RouteSeoMetadata = {
+  route: '/beauty-services',
+  title: 'Beauty Services | TYME of Beauty',
+  description:
+    'ค้นพบบริการดูแลผิวหน้า AI X FACE และประสบการณ์ความงามจาก TYME of Beauty พร้อมสอบถามรายละเอียดและนัดหมายผ่าน LINE OA',
+  ogTitle: 'Beauty Services | TYME of Beauty',
+  ogDescription:
+    'ค้นพบบริการดูแลผิวหน้า AI X FACE และประสบการณ์ความงามจาก TYME of Beauty พร้อมสอบถามรายละเอียดและนัดหมายผ่าน LINE OA',
+};
+
+export function normalizeAppRoute(pathname: string): AppRoute {
+  const clean = (pathname || '/').split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+  if (clean.toLowerCase() === '/beauty-services') {
+    return '/beauty-services';
+  }
+  return '/';
+}
+
+export function getRouteMetadata(route: AppRoute): RouteSeoMetadata {
+  return route === '/beauty-services' ? BEAUTY_SERVICES_SEO_METADATA : HOME_SEO_METADATA;
+}
+
+export function resolveBeautyServicesContactUrl(
+  configuredUrl: string | null | undefined
+): string | null {
+  if (!configuredUrl || typeof configuredUrl !== 'string') {
+    return null;
+  }
+  return sanitizeLinkUrl(configuredUrl);
+}
+

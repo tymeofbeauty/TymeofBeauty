@@ -6,7 +6,10 @@ import {
   cosineSimilarity,
   extractGoogleDocId,
   extractTextFromGoogleDoc,
+  getRouteMetadata,
+  normalizeAppRoute,
   parseMarkdownBlocks,
+  resolveBeautyServicesContactUrl,
   retrieveTopChunks,
   sanitizeLinkUrl,
   validateContactForm,
@@ -132,3 +135,33 @@ test('parseMarkdownBlocks parses headings, lists, and code blocks safely', () =>
   assert.equal(sanitizeLinkUrl('javascript:alert(1)'), null);
   assert.equal(sanitizeLinkUrl('https://tymeofbeauty.com'), 'https://tymeofbeauty.com');
 });
+
+test('normalizeAppRoute normalizes Home and Beauty Services routes cleanly', () => {
+  assert.equal(normalizeAppRoute('/'), '/');
+  assert.equal(normalizeAppRoute('/beauty-services'), '/beauty-services');
+  assert.equal(normalizeAppRoute('/beauty-services/'), '/beauty-services');
+  assert.equal(normalizeAppRoute('/BEAUTY-SERVICES?ref=nav#faq'), '/beauty-services');
+  assert.equal(normalizeAppRoute('/unknown-path'), '/');
+});
+
+test('getRouteMetadata returns route-specific SEO metadata without altering Home SEO', () => {
+  const homeMeta = getRouteMetadata('/');
+  assert.equal(homeMeta.title, 'Tyme of Beauty - Beauty & Healthy Everywhere');
+  assert.match(homeMeta.description, /Trusted beauty & wellness services/);
+
+  const beautyMeta = getRouteMetadata('/beauty-services');
+  assert.equal(beautyMeta.title, 'Beauty Services | TYME of Beauty');
+  assert.match(beautyMeta.description, /AI X FACE/);
+  assert.match(beautyMeta.description, /LINE OA/);
+});
+
+test('resolveBeautyServicesContactUrl allows valid https URLs and returns null when unconfirmed', () => {
+  assert.equal(resolveBeautyServicesContactUrl(null), null);
+  assert.equal(resolveBeautyServicesContactUrl(''), null);
+  assert.equal(resolveBeautyServicesContactUrl('javascript:void(0)'), null);
+  assert.equal(
+    resolveBeautyServicesContactUrl('https://line.me/R/ti/p/@tymeclient'),
+    'https://line.me/R/ti/p/@tymeclient'
+  );
+});
+
